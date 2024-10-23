@@ -1,7 +1,32 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react-swc'
+import { join, resolve } from 'node:path'
 
-// https://vitejs.dev/config/
+import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite'
+import dts from 'vite-plugin-dts'
+
+import { devDependencies, peerDependencies } from './package.json'
+
 export default defineConfig({
-  plugins: [react()],
+  build: {
+    lib: {
+      entry: resolve(__dirname, join('src', 'index.ts')),
+      fileName: 'index',
+      formats: ['es', 'cjs'],
+    },
+    minify: false,
+    rollupOptions: {
+      // Exclude peer dependencies from the bundle to reduce bundle size
+      external: [
+        ...Object.keys(peerDependencies),
+        ...Object.keys(devDependencies),
+        'react/jsx-runtime',
+      ],
+    },
+    sourcemap: true,
+    target: 'esnext',
+  },
+  plugins: [
+    react(),
+    dts({ rollupTypes: true }), // Output .d.ts files
+  ],
 })
